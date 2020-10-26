@@ -44,17 +44,66 @@ fn complex_version_output() {
 }
 
 #[test]
-fn override_ver() {
-    let m = App::new("test")
-        .setting(AppSettings::NoAutoVersion)
-        .author("Kevin K.")
-        .about("tests stuff")
+fn override_version_short() {
+    let app = App::new("test")
         .version("1.3")
-        .mut_arg("version", |a| {
-            a.short('v').long("version").about("some version")
-        })
-        .try_get_matches_from(vec!["test", "--version"]);
+        .mut_arg("version", |a| a.short('v'));
 
-    assert!(m.is_ok(), "{:?}", m.unwrap_err().kind);
-    assert!(m.unwrap().is_present("version"));
+    let m = app.clone().try_get_matches_from(vec!["test", "-v"]);
+
+    assert!(m.is_err());
+    let err = m.unwrap_err();
+    assert_eq!(err.kind, ErrorKind::DisplayVersion);
+    assert_eq!(err.to_string(), "test 1.3\n");
+
+    let m = app.try_get_matches_from(vec!["test", "--version"]);
+
+    assert!(m.is_err());
+    let err = m.unwrap_err();
+    assert_eq!(err.kind, ErrorKind::DisplayVersion);
+    assert_eq!(err.to_string(), "test 1.3\n");
+}
+
+#[test]
+fn override_version_long() {
+    let app = App::new("test")
+        .version("1.3")
+        .mut_arg("version", |a| a.long("vers"));
+
+    let m = app.clone().try_get_matches_from(vec!["test", "-V"]);
+
+    assert!(m.is_err());
+    let err = m.unwrap_err();
+    assert_eq!(err.kind, ErrorKind::DisplayVersion);
+    assert_eq!(err.to_string(), "test 1.3\n");
+
+    let m = app.try_get_matches_from(vec!["test", "--vers"]);
+
+    assert!(m.is_err());
+    let err = m.unwrap_err();
+    assert_eq!(err.kind, ErrorKind::DisplayVersion);
+    assert_eq!(err.to_string(), "test 1.3\n");
+}
+
+static OVERRIDE_HELP_ABOUT: &str = "test 1.3
+
+USAGE:
+    test
+
+FLAGS:
+    -H, --help       Prints help information
+    -v, --version    version info";
+
+#[test]
+fn override_version_about() {
+    let app = App::new("test")
+        .version("1.3")
+        .mut_arg("version", |a| a.about("version info"));
+
+    assert!(utils::compare_output(
+        app,
+        "test -h",
+        OVERRIDE_HELP_ABOUT,
+        false
+    ));
 }
