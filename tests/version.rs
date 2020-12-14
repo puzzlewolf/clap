@@ -85,7 +85,7 @@ fn override_version_long() {
     assert_eq!(err.to_string(), "test 1.3\n");
 }
 
-static OVERRIDE_HELP_ABOUT: &str = "test 1.3
+static OVERRIDE_VERSION_ABOUT: &str = "test 1.3
 
 USAGE:
     test
@@ -103,7 +103,7 @@ fn override_version_about() {
     assert!(utils::compare_output(
         app,
         "test -h",
-        OVERRIDE_HELP_ABOUT,
+        OVERRIDE_VERSION_ABOUT,
         false
     ));
 }
